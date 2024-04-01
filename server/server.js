@@ -2,14 +2,17 @@ const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/appDB', { useNewUrlParser: true,
 useUnifiedTopology: true });
 const postSchema = new mongoose.Schema({ 
+    userName: String,
     title: String, 
     content: String, 
+    price: Number,
+    category: String,
     pictureURL: String
 });
 const userSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
-    username: String,
+    username: { type: String, unique: true },
     email: String,
     password: String
 });
@@ -18,17 +21,25 @@ const User = mongoose.model('User', userSchema);
 
 const express = require('express');
 const cors = require('cors');
+const session = require('express-session');
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+app.use(session({
+    secret: 'session-secret-12345@',
+    resave: false,
+    saveUninitialized: false
+  }));
 app.use(express.json());
 app.use(cors());
+
 
 mongoose.connection.on('error', err => {
     console.log('MongoDB connection error:', err);
   });
+
+let userId = null;
   
-
-
 
 // WITH MongoDB
 app.get('/Sale', async (req, res) => {
@@ -38,7 +49,23 @@ app.get('/Sale', async (req, res) => {
     } catch (err) {
     res.status(500).send(err);
     }
-    });
+});
+
+app.get('/Profile', async (req, res) => {
+    try {
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        console.log('User ID:', userId);
+        const posts = await Post.find({ userName: userId });
+        console.log('Posts:', posts)
+        res.json(posts);
+    } catch (err) {
+        console.error('Error fetching posts:', err);
+        res.status(500).json({ error: 'Failed to fetch posts' });
+    }
+});
+
 
 app.get('/Home', (req, res) => {
     const homeData = {
@@ -49,20 +76,23 @@ app.get('/Home', (req, res) => {
 
 
 // WITH MongoDB
-app.post('/Posts', async (req, res) => {
-    const { title, content, pictureURL } = req.body;
-    if (!title || !content || !pictureURL) {
-      return res.status(400).json({ error: 'Title, content, and picture URL are required' });
+app.post('/posts', async (req, res) => {
+    console.log('User ID:', userId);
+    const { title, content, price, pictureURL, category} = req.body;
+    if (!title || !content || !pictureURL || !price || !category) {
+        return res.status(400).json({ error: 'Title, content, and picture URL are required' });
     }
     try {
-      // Save post data with picture URL to MongoDB
-      const newPost = new Post({ title, content, pictureURL });
-      await newPost.save();
-
-      res.status(201).json(newPost);
+        // Save post data with picture URL to MongoDB
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        const newPost = new Post({ userName: userId, title, content, price, pictureURL, category });
+        await newPost.save();
+        res.status(201).json(newPost);
     } catch (error) {
-      console.error('Error saving post to MongoDB:', error);
-      res.status(500).json({ error: 'Failed to save post' });
+        console.error('Error saving post to MongoDB:', error);
+        res.status(500).json({ error: 'Failed to save post' });
     }
 });
 
@@ -76,8 +106,12 @@ app.post('/Users', async (req, res) => {
         await newUser.save();
         res.status(201).json(newUser);
     } catch (error) {
-        console.error('Error creating user:', error);
-        res.status(500).json({ error: 'Failed to create user' });
+        if (error.code === 11000 && error.keyPattern && error.keyPattern.username) {
+            return res.status(400).json({ error: 'Username already exists' });
+        } else {
+            console.error('Error creating user:', error);
+            res.status(500).json({ error: 'Failed to create user' });
+        }
     }
 });
 
@@ -88,6 +122,24 @@ app.get('/Users', async (req, res) => {
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ error: 'Failed to fetch users' });
+    }
+});
+
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const user = await User.findOne({ username, password });
+        if (user) {
+            console.log('User logged in:', user)
+            req.session.userId = user.username;
+            userId = user.username;
+            res.json(user);
+        } else {
+            res.status(401).json({ error: 'Invalid username or password' });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 

@@ -19,14 +19,18 @@ function NewPost({ onAddPost }) {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [picture, setPicture] = useState('');
+    const [category, setCategory] = useState('');
+    const [price, setPrice] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const newPost = { id: Date.now(), title, content, pictureURL: picture };
+        const newPost = { id: Date.now(), title, content, price, pictureURL: picture, category };
         onAddPost(newPost);
         setTitle('');
         setContent('');
         setPicture('');
+        setCategory('');
+        setPrice('');
     };
 
     function onAddPost(newPost) {
@@ -61,26 +65,39 @@ function NewPost({ onAddPost }) {
                 console.error('Error uploading file:', error);
             });
     }
-        return (
-            <div>
-                <h2>Add a New Post</h2>
-                <form onSubmit={handleSubmit}>
-                    <div>
-                        <label>Title:</label>
-                        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
-                    </div>
-                    <div>
-                        <label>Content:</label>
-                        <textarea value={content} onChange={(e) => setContent(e.target.value)}></textarea>
-                    </div>
-                    <div>
-                        <label>Picture:</label>
-                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e)} />
-                    </div>
-                    <button type="submit">Add Post</button>
-                </form>
-            </div>
-        );
-    }
+    return (
+        <div>
+            <h2>Add a New Post</h2>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Title:</label>
+                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+                </div>
+                <div>
+                    <label>Content:</label>
+                    <textarea value={content} onChange={(e) => setContent(e.target.value)}></textarea>
+                </div>
+                <div>
+                    <label>Price: $</label>
+                    <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
+                </div>
 
-    export default NewPost;
+                <div>
+                    <label>Picture:</label>
+                    <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e)} />
+                </div>
+                <div>
+                    <label>Category:</label>
+                    <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                        <option value="Wanted">Wanted</option>
+                        <option value="Sale">Sale</option>
+                        <option value="AcademicService">Academic Service</option>
+                    </select>
+                </div>
+                <button type="submit">Add Post</button>
+            </form>
+        </div>
+    );
+}
+
+export default NewPost;
