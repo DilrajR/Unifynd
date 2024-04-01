@@ -6,6 +6,7 @@ function Blog() {
     const [priceFilter, setPriceFilter] = useState(0);
     const [categoryFilters, setCategoryFilters] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [titleContentQuery, setTitleContentQuery] = useState('');
     const [maxPrice, setMaxPrice] = useState(0);
 
     useEffect(() => {
@@ -24,7 +25,7 @@ function Blog() {
     const handlePriceFilterChange = (e) => {
         const newPriceFilter = parseInt(e.target.value);
         setPriceFilter(newPriceFilter);
-        filterItems(categoryFilters, searchQuery, newPriceFilter);
+        filterItems(categoryFilters, searchQuery, titleContentQuery, newPriceFilter);
     };
 
     const handleCategoryFilterChange = (e) => {
@@ -36,16 +37,22 @@ function Blog() {
             updatedCategoryFilters.push(category);
         }
         setCategoryFilters(updatedCategoryFilters);
-        filterItems(updatedCategoryFilters, searchQuery, priceFilter);
+        filterItems(updatedCategoryFilters, searchQuery, titleContentQuery, priceFilter);
     };
 
     const handleSearchInputChange = (e) => {
         const newSearchQuery = e.target.value;
         setSearchQuery(newSearchQuery);
-        filterItems(categoryFilters, newSearchQuery, priceFilter);
+        filterItems(categoryFilters, newSearchQuery, titleContentQuery, priceFilter);
     };
 
-    const filterItems = (categories, search, price) => {
+    const handleTitleContentInputChange = (e) => {
+        const newTitleContentQuery = e.target.value;
+        setTitleContentQuery(newTitleContentQuery);
+        filterItems(categoryFilters, searchQuery, newTitleContentQuery, priceFilter);
+    };
+
+    const filterItems = (categories, search, titleContent, price) => {
         let filtered = items.filter(item => item.price <= price);
         if (categories.length > 0) {
             filtered = filtered.filter(item => categories.includes(item.category));
@@ -53,9 +60,11 @@ function Blog() {
         if (search) {
             filtered = filtered.filter(item => item.city && item.city.toLowerCase().includes(search.toLowerCase()));
         }
+        if (titleContent) {
+            filtered = filtered.filter(item => item.title.toLowerCase().includes(titleContent.toLowerCase()) || item.content.toLowerCase().includes(titleContent.toLowerCase()));
+        }
         setFilteredItems(filtered);
     };
-    
 
     return (
         <div>
@@ -89,6 +98,15 @@ function Blog() {
                     id="locationSearch"
                     value={searchQuery}
                     onChange={handleSearchInputChange}
+                />
+            </div>
+            <div>
+                <label htmlFor="titleContentSearch">Search by Title or Content:</label>
+                <input
+                    type="text"
+                    id="titleContentSearch"
+                    value={titleContentQuery}
+                    onChange={handleTitleContentInputChange}
                 />
             </div>
             {filteredItems.map((post) => (
