@@ -5,6 +5,7 @@ const postSchema = new mongoose.Schema({
     userName: String,
     title: String, 
     content: String, 
+    city: String,
     price: Number,
     category: String,
     pictureURL: String
@@ -56,9 +57,7 @@ app.get('/Profile', async (req, res) => {
         if (!userId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
-        console.log('User ID:', userId);
         const posts = await Post.find({ userName: userId });
-        console.log('Posts:', posts)
         res.json(posts);
     } catch (err) {
         console.error('Error fetching posts:', err);
@@ -77,17 +76,17 @@ app.get('/Home', (req, res) => {
 
 // WITH MongoDB
 app.post('/posts', async (req, res) => {
-    console.log('User ID:', userId);
-    const { title, content, price, pictureURL, category} = req.body;
-    if (!title || !content || !pictureURL || !price || !category) {
+    const { title, content, city, price, pictureURL, category} = req.body;
+    console.log('req.body:', req.body);
+    if (!title || !content || !pictureURL || !price || !category || !city) {
         return res.status(400).json({ error: 'Title, content, and picture URL are required' });
     }
     try {
-        // Save post data with picture URL to MongoDB
         if (!userId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
-        const newPost = new Post({ userName: userId, title, content, price, pictureURL, category });
+        const newPost = new Post({ userName: userId, title, city, content, price, pictureURL, category });
+        console.log('newPost:', newPost);
         await newPost.save();
         res.status(201).json(newPost);
     } catch (error) {
@@ -130,7 +129,6 @@ app.post('/login', async (req, res) => {
     try {
         const user = await User.findOne({ username, password });
         if (user) {
-            console.log('User logged in:', user)
             req.session.userId = user.username;
             userId = user.username;
             res.json(user);

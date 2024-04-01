@@ -15,22 +15,50 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
+const weatherAPIKey = '9f6433c26012296c716edeafb0bfabd4';
+
 function NewPost({ onAddPost }) {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [picture, setPicture] = useState('');
     const [category, setCategory] = useState('');
     const [price, setPrice] = useState('');
+    const [city, setCity] = useState('');
+    const [suggestedCities, setSuggestedCities] = useState([]);
+    const [showDropdown, setShowDropdown] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const newPost = { id: Date.now(), title, content, price, pictureURL: picture, category };
+        const newPost = { id: Date.now(), title, content, city, price, pictureURL: picture, category };
         onAddPost(newPost);
         setTitle('');
         setContent('');
         setPicture('');
         setCategory('');
         setPrice('');
+        setCity('');
+    };
+
+    const fetchCities = async (searchText) => {
+        try {
+            const response = await fetch(`https://api.openweathermap.org/geo/1.0/direct?q=${searchText}&limit=5&appid=${weatherAPIKey}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch cities');
+            }
+            const data = await response.json();
+            const ontarioCities = data.filter(city => city.country === 'CA' && city.state === 'Ontario');
+            setSuggestedCities(ontarioCities);
+            setShowDropdown(true); 
+        } catch (error) {
+            console.error(error);
+            setSuggestedCities([]);
+            setShowDropdown(false);
+        }
+    };
+
+    const handleSelectCity = (selectedCity) => {
+        setCity(selectedCity);
+        setShowDropdown(false); 
     };
 
     function onAddPost(newPost) {
@@ -41,11 +69,20 @@ function NewPost({ onAddPost }) {
             },
             body: JSON.stringify(newPost)
         })
-            .then((res) => res.json())
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error('Failed to add post');
+                }
+                return res.json();
+            })
             .then((data) => {
                 alert('Post submitted successfully!');
+            })
+            .catch((error) => {
+                alert(error.message);
             });
     }
+    
 
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
@@ -76,6 +113,26 @@ function NewPost({ onAddPost }) {
                 <div>
                     <label>Content:</label>
                     <textarea value={content} onChange={(e) => setContent(e.target.value)}></textarea>
+                </div>
+                <div>
+                    <label>City:</label>
+                    <input
+                        type="text"
+                        value={city}
+                        onChange={(e) => {
+                            setCity(e.target.value);
+                            fetchCities(e.target.value);
+                        }}
+                    />
+                    {showDropdown && suggestedCities.length > 0 && (
+                        <ul className="dropdown-container">
+                            {suggestedCities.map((city) => (
+                                <li key={city.name} className="dropdown-item" onClick={() => handleSelectCity(city.name)}>
+                                    {city.name}, {city.country}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
                 <div>
                     <label>Price: $</label>

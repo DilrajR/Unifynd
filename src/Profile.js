@@ -16,9 +16,10 @@ function Blog() {
             {Items.map((post) => (
                 <div key={post.id}>
                     <h3>{post.title}</h3>
-                    <p>{post.content}</p>
-                    <p>{post.price}</p>
-                    <p>{post.category}</p>
+                    <p>Content: {post.content}</p>
+                    <p>City: {post.city}</p>
+                    <p>Price: ${post.price}</p>
+                    <p>Category: {post.category}</p>
                     <img src={post.pictureURL} alt={post.title} style={{ maxWidth: '200px', maxHeight: '200px', borderRadius: '5px' }} />
                 </div>
             ))}
