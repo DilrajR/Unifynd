@@ -62,9 +62,6 @@ function Login() {
             <a href="/signup" className="register-btn">
               Register
             </a>
-            <a href="/home" className="register-btn">
-              Home (temp)
-            </a>
           </form>
         </main>
       </div>
