@@ -1,37 +1,41 @@
-import logo from "../../assets/tmu_logo.svg";
-import "./Login.css";
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import logo from '../../assets/tmu_logo.svg';
+import './Login.css';
 
 function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username || !password) {
-      setError('Username and password are required');
+      setError("Username and password are required");
+      alert("Username and password are required");
     } else {
-      setError('');
+      setError("");
       try {
-        const response = await fetch('http://localhost:3001/login', {
-          method: 'POST',
+        const response = await fetch("http://localhost:3001/login", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ username, password }),
         });
         if (response.ok) {
-          console.log('Login successful');
+          window.location.href = "/Home"; 
         } else {
-          setError('Invalid username or password');
+          alert("Invalid username or password");
+          setError("Invalid username or password");
         }
       } catch (error) {
-        console.error('Error during login:', error);
-        setError('An error occurred, please try again later');
+        console.error("Error during login:", error);
+        alert("An error occurred, please try again later");
+        setError("An error occurred, please try again later");
       }
     }
-  }
+  };
+  
 
   return (
     <>

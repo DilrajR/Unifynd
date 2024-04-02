@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
     username: { type: String, unique: true },
-    email: String,
+    email: { type: String, unique: true },
     password: String
 });
 const Post = mongoose.model('Post', postSchema);
@@ -77,7 +77,6 @@ app.get('/Home', (req, res) => {
 // WITH MongoDB
 app.post('/posts', async (req, res) => {
     const { title, content, city, price, pictureURL, category} = req.body;
-    console.log('req.body:', req.body);
     if (!title || !content || !pictureURL || !price || !category || !city) {
         return res.status(400).json({ error: 'Title, content, and picture URL are required' });
     }
@@ -86,7 +85,6 @@ app.post('/posts', async (req, res) => {
             return res.status(401).json({ error: 'Unauthorized' });
         }
         const newPost = new Post({ userName: userId, title, city, content, price, pictureURL, category });
-        console.log('newPost:', newPost);
         await newPost.save();
         res.status(201).json(newPost);
     } catch (error) {
@@ -101,12 +99,24 @@ app.post('/Users', async (req, res) => {
         if (!firstName || !lastName || !username || !email || !password) {
             return res.status(400).json({ error: 'First name, Last name, Username, email, and password are required' });
         }
+
+        const existingUsername = await User.findOne({ username });
+        if (existingUsername) {
+            return res.status(400).json({ error: 'Username already exists' });
+        }
+
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
+            return res.status(400).json({ error: 'Email already exists' });
+        }
         const newUser = new User({ firstName, lastName, username, email, password });
         await newUser.save();
         res.status(201).json(newUser);
     } catch (error) {
         if (error.code === 11000 && error.keyPattern && error.keyPattern.username) {
             return res.status(400).json({ error: 'Username already exists' });
+        } else if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+            return res.status(400).json({ error: 'Email already exists' });
         } else {
             console.error('Error creating user:', error);
             res.status(500).json({ error: 'Failed to create user' });
@@ -141,6 +151,19 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.delete('/posts/:id', async (req, res) => {
+    const postId = req.params.id;
+    try {
+        const deletedPost = await Post.findByIdAndDelete(postId);
+        if (!deletedPost) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+        res.json({ message: 'Post deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting post:', error);
+        res.status(500).json({ error: 'Failed to delete post' });
+    }
+});
   
 
 // Start the server

@@ -8,7 +8,6 @@ function NewUser({ onAddUser }) {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -29,24 +28,10 @@ function NewUser({ onAddUser }) {
             },
             body: JSON.stringify(newUser)
         })
-        .then((res) => {
-          if (!res.ok) {
-            if (res.status === 400) {
-                throw new Error('Username already exists');
-            }
-            else if (res.status === 500) {
-                throw new Error('Failed to create user');
-            }
-          }
-          return res.json();
-        })
-        .then((data) => {
-          alert('User added successfully!');
-        })
-        .catch((error) => {
-          console.error('Error adding user:', error);
-          setError(error.message);
-        });
+            .then((res) => res.json())
+            .then((data) => {
+                alert('User added successfully!');
+            });
     }
     
         return (
@@ -73,9 +58,8 @@ function NewUser({ onAddUser }) {
                     <label>Password:</label>
                         <input type="text" value={password} onChange={(e) => setPassword(e.target.value)} />
                     </div>
-                    <button type="submit">Add User</button>
+                    <button type="submit">Add Post</button>
                 </form>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
             </div>
         );
     }
