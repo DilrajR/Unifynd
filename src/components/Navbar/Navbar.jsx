@@ -31,6 +31,9 @@ function Navbar() {
               <a href="/Profile">Profile</a>
             </li>
             <li>
+              <a href="/Inbox">Inbox</a>
+            </li>
+            <li>
               <a href="/">Logout</a>
             </li>
           </ul>
@@ -48,6 +51,9 @@ function Navbar() {
             </li>
             <li>
               <a href="/Profile">Profile</a>
+            </li>
+            <li>
+              <a href="/Inbox">Inbox</a>
             </li>
             <li>
               <a href="/">Logout</a>

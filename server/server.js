@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/appDB', { useNewUrlParser: true,
-useUnifiedTopology: true });
-const postSchema = new mongoose.Schema({ 
+mongoose.connect('mongodb://localhost:27017/appDB', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
+const postSchema = new mongoose.Schema({
     userName: String,
-    title: String, 
-    content: String, 
+    title: String,
+    content: String,
     city: String,
     price: Number,
     category: String,
@@ -17,8 +19,15 @@ const userSchema = new mongoose.Schema({
     email: { type: String, unique: true },
     password: String
 });
+const messageSchema = new mongoose.Schema({
+    userName: String,
+    receiverName: String,
+    message: String,
+    date: Date
+});
 const Post = mongoose.model('Post', postSchema);
 const User = mongoose.model('User', userSchema);
+const Message = mongoose.model('Message', messageSchema);
 
 const express = require('express');
 const cors = require('cors');
@@ -30,25 +39,24 @@ app.use(session({
     secret: 'session-secret-12345@',
     resave: false,
     saveUninitialized: false
-  }));
+}));
 app.use(express.json());
 app.use(cors());
 
 
 mongoose.connection.on('error', err => {
     console.log('MongoDB connection error:', err);
-  });
+});
 
 let userId = null;
-  
+let messageUser = null;
 
-// WITH MongoDB
 app.get('/Sale', async (req, res) => {
     try {
-    const posts = await Post.find({});
-    res.json(posts);
+        const posts = await Post.find({});
+        res.json(posts);
     } catch (err) {
-    res.status(500).send(err);
+        res.status(500).send(err);
     }
 });
 
@@ -65,7 +73,6 @@ app.get('/Profile', async (req, res) => {
     }
 });
 
-
 app.get('/Home', (req, res) => {
     const homeData = {
         message: 'Welcome to our website! Explore our blog for interesting articles.'
@@ -73,10 +80,9 @@ app.get('/Home', (req, res) => {
     res.json(homeData);
 });
 
-
 // WITH MongoDB
 app.post('/posts', async (req, res) => {
-    const { title, content, city, price, pictureURL, category} = req.body;
+    const { title, content, city, price, pictureURL, category } = req.body;
     if (!title || !content || !pictureURL || !price || !category || !city) {
         return res.status(400).json({ error: 'Title, content, and picture URL are required' });
     }
@@ -164,7 +170,124 @@ app.delete('/posts/:id', async (req, res) => {
         res.status(500).json({ error: 'Failed to delete post' });
     }
 });
-  
+
+app.delete('/Users/:id', async (req, res) => {
+    const userName = req.params.id;
+    const deleteuser = await User.findOne({ username: userName })
+    if (!deleteuser) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+    const deleteID = deleteuser._id;
+    try {
+        const deletedUser = await User.findByIdAndDelete(deleteID);
+        if (!deletedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: 'Failed to delete user' });
+    }
+});
+
+app.post('/message', async (req, res) => {
+    const { postID } = req.body;
+    try {
+        const posts = await Post.find({ _id: postID });
+        if (posts.length === 0) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+        messageUser = posts[0].userName;
+        if (userId === messageUser) {
+            return res.status(400).json({ error: 'Cannot message yourself' });
+        }
+    } catch (err) {
+        res.status(500).send(err);
+    }
+    res.json({ message: 'Message sent' });
+});
+
+app.get('/message', async (req, res) => {
+    try {
+        const messages = await Message.find({ $or: [{ userName: userId, receiverName: messageUser }, { userName: messageUser, receiverName: userId }] });
+        res.json(messages);
+    } catch (err) {
+        res.status(500).send(err);
+    }
+});
+
+app.post('/setUser', async (req, res) => {
+    const sender = req.body.userId;
+    const receiver = req.body.receiverId;
+    if (sender === userId) {
+        messageUser = receiver;
+    } else {
+        messageUser = sender;
+    }
+    res.json({ message: 'User set' });
+});
+
+app.get('/inbox', async (req, res) => {
+    try {
+        const messages = await Message.aggregate([
+            {
+                $match: {
+                    $or: [
+                        { userName: userId },
+                        { receiverName: userId }
+                    ]
+                }
+            },
+            { $sort: { date: -1 } },
+            {
+                $group: {
+                    _id: {
+                        $cond: [
+                            { $eq: ['$userName', userId] },
+                            '$receiverName',
+                            '$userName'
+                        ]
+                    },
+                    message: { $first: '$message' },
+                    userName: { $first: '$userName' },
+                    receiverName: { $first: '$receiverName' },
+                    date: { $first: '$date' }
+                }
+            }
+        ]);
+
+        res.json(messages);
+    } catch (err) {
+        res.status(500).send(err);
+    }
+});
+
+
+
+app.post('/sendMessage', async (req, res) => {
+    const messageText = req.body.message;
+    try {
+        const sender = userId;
+        const receiver = messageUser;
+        if (!sender || !receiver) {
+            return res.status(404).json({ error: 'Sender or receiver not found' });
+        }
+
+        const newMessage = new Message({
+            userName: sender,
+            receiverName: receiver,
+            message: messageText,
+            date: Date.now()
+        });
+
+        await newMessage.save();
+        res.status(201).json({ message: 'Message sent successfully' });
+    } catch (error) {
+        console.error('Error sending message:', error);
+        res.status(500).json({ error: 'Failed to send message' });
+    }
+});
+
 
 // Start the server
 app.listen(PORT, () => {

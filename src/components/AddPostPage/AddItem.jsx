@@ -31,6 +31,12 @@ function NewPost({ onAddPost }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const cityExists = city !== '' && suggestedCities.some((suggestedCity) => suggestedCity.name === city);
+
+    if (!cityExists) {
+      alert('Please select a city from the dropdown');
+      return;
+    }
     const newPost = { id: Date.now(), title, content, city, price, pictureURL: picture, category };
     onAddPost(newPost);
     setTitle('');
@@ -140,7 +146,7 @@ function NewPost({ onAddPost }) {
           </div>
           <div>
             <label>Price: $</label>
-            <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
+            <input type="number" value={price} min={0} onChange={(e) => setPrice(e.target.value)} />
           </div>
 
           <div>
@@ -150,6 +156,7 @@ function NewPost({ onAddPost }) {
           <div>
             <label>Category:</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">Select a category</option>
               <option value="Wanted">Wanted</option>
               <option value="Sale">Sale</option>
               <option value="AcademicService">Academic Service</option>

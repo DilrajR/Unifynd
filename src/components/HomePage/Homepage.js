@@ -73,6 +73,27 @@ function Homepage() {
     }
     setFilteredItems(filtered);
   };
+
+  function handleMessage(postID) {
+    fetch(`http://localhost:3001/message`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ postID }),
+    })
+    .then((response) => {
+      if (response.ok) {
+        window.location.href = "/Messages";
+      } else if (response.status === 400) {
+        throw new Error("Cannot message yourself");
+      }
+    })
+    .catch((error) => {
+      alert(error.message);
+    });
+};
+
   return (
     <>
       <Navbar />
@@ -165,7 +186,8 @@ function Homepage() {
               </div>
               <div className="post-footer">
                 <p className="footer-location">{post.city}</p>
-                <button className="footer-btn">MESSAGE</button>
+                <p className="footer-username">@{post.userName}</p>
+                <button className="footer-btn" onClick={() => handleMessage(post._id)}>MESSAGE</button>
               </div>
             </div>
           ))}
