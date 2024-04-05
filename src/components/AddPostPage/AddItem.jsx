@@ -146,7 +146,7 @@ function NewPost({ onAddPost }) {
           </div>
           <div>
             <label>Price: $</label>
-            <input type="number" value={price} min={0} onChange={(e) => setPrice(e.target.value)} />
+            <input type="number" value={price} min={0.00} step={0.01} onChange={(e) => setPrice(e.target.value)} />
           </div>
 
           <div>

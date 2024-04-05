@@ -34,6 +34,7 @@ const cors = require('cors');
 const session = require('express-session');
 const app = express();
 const PORT = process.env.PORT || 3001;
+const bcrypt = require('bcrypt');
 
 app.use(session({
     secret: 'session-secret-12345@',
@@ -48,6 +49,7 @@ mongoose.connection.on('error', err => {
     console.log('MongoDB connection error:', err);
 });
 
+const salt =10;
 let userId = null;
 let messageUser = null;
 
@@ -115,7 +117,20 @@ app.post('/Users', async (req, res) => {
         if (existingEmail) {
             return res.status(400).json({ error: 'Email already exists' });
         }
-        const newUser = new User({ firstName, lastName, username, email, password });
+
+        const emailFormat = /^[a-zA-Z0-9_.+-]+@torontomu.com/;
+        if (!(email.match(emailFormat))){
+            return res.status(400).json({ error: 'Email needs to be @torontomu.com' });
+        }
+        const passwordFormat = /^(?=.*\d)(?=.*[@#\-_$%^&+=ยง!\?])(?=.*[a-z])(?=.*[A-Z])[0-9A-Za-z@#\-_$%^&+=ยง!\?]+$/;
+        if (!(password.match(passwordFormat))){
+            return res.status(400).json({ error: 'Password, needs 1 cap, 1 lower, 1 number, and 1 ascii' });
+        }
+        const hashedPassword = await bcrypt.hash(password, salt);
+        //Create a new user object with the hash string
+        console.log(hashedPassword);
+
+        const newUser = new User({firstName,lastName,username,email,password: hashedPassword});
         await newUser.save();
         res.status(201).json(newUser);
     } catch (error) {
@@ -143,11 +158,15 @@ app.get('/Users', async (req, res) => {
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
-        const user = await User.findOne({ username, password });
+        const user = await User.findOne({ username });
         if (user) {
+            const passwordMatch = await bcrypt.compare(password, user.password);
+            if (!passwordMatch) {
+                return res.status(400).json({ error: 'Invalid username or password' });
+            }
             req.session.userId = user.username;
             userId = user.username;
-            res.json(user);
+            res.status(200).json({ message: 'Authentication successful', user: user });
         } else {
             res.status(401).json({ error: 'Invalid username or password' });
         }

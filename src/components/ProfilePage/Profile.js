@@ -18,7 +18,7 @@ function Profile() {
       .then((data) => {
         setItems(data);
         setFilteredItems(data);
-        const maxPrice = Math.max(...data.map((item) => item.price));
+        const maxPrice = Math.ceil(Math.max(...data.map((item) => item.price)));
         setMaxPrice(maxPrice);
         setPriceFilter(maxPrice);
       })
