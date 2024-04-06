@@ -1,11 +1,36 @@
+import React, { useState, useEffect } from 'react';
 import logo from "../../assets/tmu_logo.svg";
 import "./Navbar.css";
 
 function Navbar() {
+  const [isAdmin, setIsAdmin] = useState(false);
+
   function handleClick() {
     const mobileNav = document.querySelector(".mobile-nav");
     mobileNav.classList.toggle("clicked");
   }
+
+  useEffect(() => {
+    fetch("http://localhost:3001/Admins")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        const userId = data.username;
+        if (userId) {
+          const isAdmin = data.admins.some((admin) => admin.username === userId);
+          setIsAdmin(isAdmin);
+        }
+      })
+      .catch((error) => console.error("Error fetching data:", error));
+  }, []);
+
+  
+
+
   return (
     <>
       <div className="navbar">
@@ -24,9 +49,11 @@ function Navbar() {
             <li>
               <a href="/AddItem">Add Post</a>
             </li>
-            <li>
-              <a href="/Admin">Admin</a>
-            </li>
+            {isAdmin && (
+              <li>
+                <a href="/Admin">Admin</a>
+              </li>
+            )}
             <li>
               <a href="/Profile">Profile</a>
             </li>
@@ -46,9 +73,11 @@ function Navbar() {
             <li>
               <a href="/AddItem">Add Post</a>
             </li>
-            <li>
-              <a href="/Admin">Admin</a>
-            </li>
+            {isAdmin && (
+              <li>
+                <a href="/Admin">Admin</a>
+              </li>
+            )}
             <li>
               <a href="/Profile">Profile</a>
             </li>

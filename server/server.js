@@ -1,8 +1,11 @@
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/appDB', {
+const uri = "mongodb+srv://DilrajR:Dilraj24.@unifynd.zrb98i7.mongodb.net/?retryWrites=true&w=majority&appName=Unifynd";
+
+mongoose.connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
+
 const postSchema = new mongoose.Schema({
     userName: String,
     title: String,
@@ -17,7 +20,8 @@ const userSchema = new mongoose.Schema({
     lastName: String,
     username: { type: String, unique: true },
     email: { type: String, unique: true },
-    password: String
+    password: String,
+    isAdmin: { type: Boolean, default: false }
 });
 const messageSchema = new mongoose.Schema({
     userName: String,
@@ -49,9 +53,10 @@ mongoose.connection.on('error', err => {
     console.log('MongoDB connection error:', err);
 });
 
-const salt =10;
+const salt = 10;
 let userId = null;
 let messageUser = null;
+
 
 app.get('/Sale', async (req, res) => {
     try {
@@ -73,13 +78,6 @@ app.get('/Profile', async (req, res) => {
         console.error('Error fetching posts:', err);
         res.status(500).json({ error: 'Failed to fetch posts' });
     }
-});
-
-app.get('/Home', (req, res) => {
-    const homeData = {
-        message: 'Welcome to our website! Explore our blog for interesting articles.'
-    };
-    res.json(homeData);
 });
 
 // WITH MongoDB
@@ -118,19 +116,19 @@ app.post('/Users', async (req, res) => {
             return res.status(400).json({ error: 'Email already exists' });
         }
 
-        const emailFormat = /^[a-zA-Z0-9_.+-]+@torontomu.com/;
-        if (!(email.match(emailFormat))){
-            return res.status(400).json({ error: 'Email needs to be @torontomu.com' });
+        const emailFormat = /^[a-zA-Z0-9_.+-]+@torontomu.ca/;
+        if (!(email.match(emailFormat))) {
+            return res.status(400).json({ error: 'Email needs to be @torontomu.ca' });
         }
         const passwordFormat = /^(?=.*\d)(?=.*[@#\-_$%^&+=ยง!\?])(?=.*[a-z])(?=.*[A-Z])[0-9A-Za-z@#\-_$%^&+=ยง!\?]+$/;
-        if (!(password.match(passwordFormat))){
+        if (!(password.match(passwordFormat))) {
             return res.status(400).json({ error: 'Password, needs 1 cap, 1 lower, 1 number, and 1 ascii' });
         }
         const hashedPassword = await bcrypt.hash(password, salt);
         //Create a new user object with the hash string
         console.log(hashedPassword);
 
-        const newUser = new User({firstName,lastName,username,email,password: hashedPassword});
+        const newUser = new User({ firstName, lastName, username, email, password: hashedPassword });
         await newUser.save();
         res.status(201).json(newUser);
     } catch (error) {
@@ -155,6 +153,17 @@ app.get('/Users', async (req, res) => {
     }
 });
 
+app.get('/Admins', async (req, res) => {
+    try {
+        const admins = await User.find({ isAdmin: true });
+        const responseData = { admins, username: userId };
+        res.json(responseData);
+    } catch (error) {
+        console.error('Error fetching admins:', error);
+        res.status(500).json({ error: 'Failed to fetch admins' });
+    }
+});
+
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -166,7 +175,7 @@ app.post('/login', async (req, res) => {
             }
             req.session.userId = user.username;
             userId = user.username;
-            res.status(200).json({ message: 'Authentication successful', user: user });
+            res.status(200).json({ message: 'Authentication successful', user: user, userId: user.username });
         } else {
             res.status(401).json({ error: 'Invalid username or password' });
         }
@@ -229,7 +238,8 @@ app.post('/message', async (req, res) => {
 app.get('/message', async (req, res) => {
     try {
         const messages = await Message.find({ $or: [{ userName: userId, receiverName: messageUser }, { userName: messageUser, receiverName: userId }] });
-        res.json(messages);
+        const responseData = { messages, userName: userId, receiverName: messageUser };
+        res.json(responseData);
     } catch (err) {
         res.status(500).send(err);
     }
@@ -280,8 +290,6 @@ app.get('/inbox', async (req, res) => {
         res.status(500).send(err);
     }
 });
-
-
 
 app.post('/sendMessage', async (req, res) => {
     const messageText = req.body.message;

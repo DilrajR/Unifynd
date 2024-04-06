@@ -45,6 +45,7 @@ function NewPost({ onAddPost }) {
     setCategory('');
     setPrice('');
     setCity('');
+    document.getElementById('file-upload').value = '';
   };
 
   const fetchCities = async (searchText) => {
@@ -151,7 +152,7 @@ function NewPost({ onAddPost }) {
 
           <div>
             <label>Picture:</label>
-            <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e)} />
+            <input id="file-upload" type="file" accept="image/*" onChange={(e) => handleFileUpload(e)} />
           </div>
           <div>
             <label>Category:</label>

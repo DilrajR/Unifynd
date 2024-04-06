@@ -9,6 +9,7 @@ function AdminProfile() {
   const [users, setUsers] = useState([]);
   const [user, setUser] = useState("");
   const [filteredItems, setFilteredItems] = useState([]);
+  const [userNames, setUserNames] = useState([]);
 
   const handleSearchInputChange = (e) => {
     setSearchQuery(e.target.value);
@@ -24,21 +25,23 @@ function AdminProfile() {
   }, []);
 
   useEffect(() => {
+    fetch("http://localhost:3001/Users")
+      .then((res) => res.json())
+      .then((data) => {
+        setUsers(data);
+        const userNames = data.map((user) => user.username);
+        setUserNames(userNames);
+      })
+      .catch((error) => console.error("Error fetching data:", error));
+  }, []);
+
+  useEffect(() => {
     const results = items.filter(
       (item) =>
         searchQuery.trim() === "" || item.userName.toLowerCase() === searchQuery.toLowerCase()
     );
     setFilteredItems(results);
   }, [items, searchQuery]);
-
-  useEffect(() => {
-    fetch("http://localhost:3001/Users")
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data);
-      })
-      .catch((error) => console.error("Error fetching data:", error));
-  }, []);
 
   const deleteUser = async (username) => {
     try {
@@ -47,6 +50,7 @@ function AdminProfile() {
       });
       if (response.ok) {
         alert("User deleted successfully");
+        window.location.reload();
       } else {
         alert("Failed to delete user");
       }
@@ -68,7 +72,6 @@ function AdminProfile() {
       if (response.ok) {
         setItems((prevItems) => prevItems.filter((item) => item.id !== postId));
         alert("Post deleted successfully");
-        window.location.reload();
       } else {
         alert("Failed to delete post");
       }
@@ -78,25 +81,26 @@ function AdminProfile() {
     }
     deleteUser(username);
   };
-  
 
   const handleDelete = async (postId) => {
     try {
-      const response = await fetch(`http://localhost:3001/posts/${postId}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
+        const response = await fetch(`http://localhost:3001/posts/${postId}`, {
+            method: "DELETE",
+        });
+        if (!response.ok) {
+            const errorMessage = await response.text(); 
+            console.error(`Failed to delete post: ${errorMessage}`);
+            alert("Failed to delete post");
+            return;
+        }
         setItems((prevItems) => prevItems.filter((item) => item.id !== postId));
         alert("Post deleted successfully");
-        window.location.reload();
-      } else {
-        alert("Failed to delete post");
-      }
     } catch (error) {
-      console.error("Error deleting post:", error);
-      alert("An error occurred while deleting the post");
+        console.error("Error deleting post:", error);
+        alert("An error occurred while deleting the post");
     }
-  };
+};
+
   return (
     <>
       <Navbar />
@@ -111,10 +115,10 @@ function AdminProfile() {
               id="searchInput"
             />
           </div>
-          {filteredItems.length > 0 && searchQuery.trim() !== "" && (
+          {userNames.includes(searchQuery) && searchQuery.trim() !== "" && (
             <div className="delete-wrapper">
               <button className="user-delete" onClick={(e) => handleMassDelete(e, searchQuery)}>
-                Delete
+                Delete User and Posts
               </button>
             </div>
           )}
