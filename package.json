@@ -24,10 +24,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "node server.js",
+    "build": "npm-run-all --parallel build-client build-server",
+    "build-client": "cd client && npm run build",
+    "build-server": "echo 'No build required for server'"
   },
   "eslintConfig": {
     "extends": [
