@@ -29,7 +29,7 @@ function Signup({ onAddUser }) {
       setError('Passwords do not match');
       alert('Passwords do not match');
     } else {
-      fetch('http://localhost:3001/Users', {
+      fetch('https://server-test-inky.vercel.app/Users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

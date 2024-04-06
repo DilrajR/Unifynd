@@ -15,7 +15,7 @@ function Login() {
     } else {
       setError("");
       try {
-        const response = await fetch("http://localhost:3001/login", {
+        const response = await fetch("https://server-test-inky.vercel.app/login", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -12,7 +12,7 @@ function Homepage() {
   const [maxPrice, setMaxPrice] = useState(0);
 
   useEffect(() => {
-    fetch("http://localhost:3001/Sale")
+    fetch("https://server-test-inky.vercel.app/Sale")
       .then((res) => res.json())
       .then((data) => {
         setItems(data);
@@ -75,7 +75,7 @@ function Homepage() {
   };
 
   function handleMessage(postID) {
-    fetch(`http://localhost:3001/message`, {
+    fetch(`https://server-test-inky.vercel.app/message`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

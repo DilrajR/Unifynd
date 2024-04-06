@@ -16,7 +16,7 @@ function AdminProfile() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:3001/Sale")
+    fetch("https://server-test-inky.vercel.app/Sale")
       .then((res) => res.json())
       .then((data) => {
         setItems(data);
@@ -25,7 +25,7 @@ function AdminProfile() {
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:3001/Users")
+    fetch("https://server-test-inky.vercel.app/Users")
       .then((res) => res.json())
       .then((data) => {
         setUsers(data);
@@ -45,7 +45,7 @@ function AdminProfile() {
 
   const deleteUser = async (username) => {
     try {
-      const response = await fetch(`http://localhost:3001/Users/${username}`, {
+      const response = await fetch(`https://server-test-inky.vercel.app/Users/${username}`, {
         method: "DELETE",
       });
       if (response.ok) {
@@ -66,7 +66,7 @@ function AdminProfile() {
       const posts = items.filter((item) => item.userName === username);
       for (const post in posts) {
         const postId = posts[post]._id;
-        const response = await fetch(`http://localhost:3001/posts/${postId}`, {
+        const response = await fetch(`https://server-test-inky.vercel.app/posts/${postId}`, {
         method: "DELETE",
       });
       if (response.ok) {
@@ -84,7 +84,7 @@ function AdminProfile() {
 
   const handleDelete = async (postId) => {
     try {
-        const response = await fetch(`http://localhost:3001/posts/${postId}`, {
+        const response = await fetch(`https://server-test-inky.vercel.app/posts/${postId}`, {
             method: "DELETE",
         });
         if (!response.ok) {

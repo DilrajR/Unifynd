@@ -6,7 +6,7 @@ function Inbox() {
   const [messages, setMessages] = useState([]);
 
   function getInbox() {
-    fetch("http://localhost:3001/inbox")
+    fetch("https://server-test-inky.vercel.app/inbox")
       .then((response) => response.json())
       .then((data) => {
         const sortedMessages = data.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -18,7 +18,7 @@ function Inbox() {
   }
 
   function handleMessageClick(message) {
-    fetch("http://localhost:3001/setUser", {
+    fetch("https://server-test-inky.vercel.app/setUser", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

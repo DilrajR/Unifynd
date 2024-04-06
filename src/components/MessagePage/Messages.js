@@ -11,7 +11,7 @@ function Messages() {
     const messageListRef = useRef(null);
 
     const fetchMessages = () => {
-        fetch("http://localhost:3001/message")
+        fetch("https://server-test-inky.vercel.app/message")
             .then(response => response.json())
             .then(data => {
                 setMessages(data.messages);
@@ -44,7 +44,7 @@ function Messages() {
             alert("Message cannot be blank");
             return;
         }
-        fetch("http://localhost:3001/sendMessage", {
+        fetch("https://server-test-inky.vercel.app/sendMessage", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

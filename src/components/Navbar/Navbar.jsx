@@ -11,7 +11,7 @@ function Navbar() {
   }
 
   useEffect(() => {
-    fetch("http://localhost:3001/Admins")
+    fetch("https://server-test-inky.vercel.app/Admins")
       .then((res) => {
         if (!res.ok) {
           throw new Error("Failed to fetch user data");

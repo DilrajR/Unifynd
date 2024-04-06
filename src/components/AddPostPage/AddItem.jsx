@@ -71,7 +71,7 @@ function NewPost({ onAddPost }) {
   };
 
   function onAddPost(newPost) {
-    fetch('http://localhost:3001/posts', {
+    fetch('https://server-test-inky.vercel.app/posts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

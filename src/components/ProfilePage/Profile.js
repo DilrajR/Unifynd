@@ -13,7 +13,7 @@ function Profile() {
   const [maxPrice, setMaxPrice] = useState(0);
 
   useEffect(() => {
-    fetch("http://localhost:3001/Profile")
+    fetch("https://server-test-inky.vercel.app/Profile")
       .then((res) => res.json())
       .then((data) => {
         setItems(data);
@@ -58,7 +58,7 @@ function Profile() {
   const handleDelete = async (postId) => {
     console.log("Deleting post:", postId);
     try {
-      const response = await fetch(`http://localhost:3001/posts/${postId}`, {
+      const response = await fetch(`https://server-test-inky.vercel.app/posts/${postId}`, {
         method: "DELETE",
       });
       if (response.ok) {
